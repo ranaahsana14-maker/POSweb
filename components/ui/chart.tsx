@@ -96,6 +96,10 @@ interface ChartTooltipContentProps extends Omit<RechartsPrimitive.TooltipProps<n
   indicator?: 'line' | 'dot' | 'dashed'
   nameKey?: string
   labelKey?: string
+  payload?: TooltipItem[]
+  label?: any
+  className?: string
+  color?: string
 }
 
 function ChartTooltipContent({
@@ -118,7 +122,7 @@ function ChartTooltipContent({
   const tooltipLabel = React.useMemo(() => {
     if (!active || hideLabel || !payload?.length) return null
     const [item] = payload as TooltipItem[]
-    const key = labelKey || item.dataKey || item.name || 'value'
+    const key = labelKey || (typeof item.dataKey === 'string' ? item.dataKey : item.name) || 'value'
     const itemConfig = getPayloadConfig(config, item, key)
     const value =
       !labelKey && typeof label === 'string'
@@ -137,12 +141,12 @@ function ChartTooltipContent({
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
         {(payload as TooltipItem[]).map((item, idx) => {
-          const key = nameKey || item.name || item.dataKey || 'value'
+          const key = nameKey || item.name || (typeof item.dataKey === 'string' ? item.dataKey : 'value') || 'value'
           const itemConfig = getPayloadConfig(config, item, key)
           const indicatorColor = color || item.payload?.fill || item.color
 
           return (
-            <div key={item.dataKey || idx} className={cn('[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5', indicator === 'dot' && 'items-center')}>
+            <div key={typeof item.dataKey === 'string' ? item.dataKey : idx} className={cn('[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5', indicator === 'dot' && 'items-center')}>
               {formatter && item.value !== undefined && item.name
                 ? formatter(item.value, item.name, item, idx, item.payload)
                 : <>
@@ -167,9 +171,10 @@ function ChartTooltipContent({
 }
 
 // ---------------- LEGEND ----------------
-interface ChartLegendContentProps extends Omit<RechartsPrimitive.LegendProps<number, string>, 'payload'> {
+interface ChartLegendContentProps extends Omit<RechartsPrimitive.LegendProps, 'payload'> {
   hideIcon?: boolean
   nameKey?: string
+  payload?: any[]
 }
 
 function ChartLegendContent({ className, hideIcon = false, payload, verticalAlign = 'bottom', nameKey }: ChartLegendContentProps) {
@@ -178,7 +183,7 @@ function ChartLegendContent({ className, hideIcon = false, payload, verticalAlig
 
   return (
     <div className={cn('flex items-center justify-center gap-4', verticalAlign === 'top' ? 'pb-3' : 'pt-3', className)}>
-      {payload.map((item, idx) => {
+      {payload.map((item: any, idx: number) => {
         const key = nameKey || item.dataKey || 'value'
         const itemConfig = getPayloadConfig(config, item, key)
         return (
